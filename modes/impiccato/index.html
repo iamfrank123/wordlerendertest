@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impiccato - Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../../client_translations.js"></script>
+    <script src="../../translation_manager.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- SCREEN: LOBBY -->
+        <div id="lobby-screen" class="screen active">
+            <h1 data-i18n="imp_title">🎯 IMPICCATO</h1>
+            <p class="subtitle" data-i18n="imp_subtitle">Indovina la parola lettera per lettera!</p>
+
+            <div class="form-group">
+                <label data-i18n="ava_label_nick">Nickname</label>
+                <input type="text" id="nickname" data-i18n="imp_placeholder_nick" placeholder="Il tuo nome..."
+                    maxlength="12">
+            </div>
+
+            <div class="row">
+                <!-- Create Room -->
+                <div class="section">
+                    <h2 data-i18n="imp_lobby_create">Crea Stanza</h2>
+
+                    <!-- Game Mode Selector -->
+                    <div class="form-group">
+                        <label data-i18n="imp_mode_label">Modalità di Gioco:</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" value="classic" checked>
+                                <span data-i18n="imp_mode_classic">🎲 Classica</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" value="playerWord">
+                                <span data-i18n="imp_mode_player">✍️ Parola del Giocatore</span>
+                            </label>
+                        </div>
+                        <p class="mode-description" id="mode-desc-classic" data-i18n="imp_mode_classic_desc"
+                            style="color: #888; font-size: 0.8rem; margin-top: 6px;">
+                            Il sistema sceglie la parola segreta dal dizionario.
+                        </p>
+                        <p class="mode-description" id="mode-desc-playerWord" data-i18n="imp_mode_player_desc"
+                            style="color: #888; font-size: 0.8rem; margin-top: 6px; display: none;">
+                            Un giocatore a turno sceglie la parola segreta e dà un indizio.
+                        </p>
+                    </div>
+
+                    <!-- Word Length (only for classic mode) -->
+                    <div class="form-group" id="word-length-group">
+                        <label data-i18n="imp_label_word_length">Lunghezza Parola:</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="wordLength" value="5" checked>
+                                5 <span data-i18n="imp_letters">lettere</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="wordLength" value="6">
+                                6 <span data-i18n="imp_letters">lettere</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="wordLength" value="7">
+                                7 <span data-i18n="imp_letters">lettere</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="wordLength" value="8">
+                                8 <span data-i18n="imp_letters">lettere</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="language-group">
+                        <label data-i18n="imp_label_language">Lingua / Language:</label>
+                        <div class="radio-group" id="language-options">
+                            <label class="radio-label">
+                                <input type="radio" name="language" value="it" checked>
+                                🇮🇹 Italian Mode
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="language" value="en">
+                                🇬🇧 English Mode
+                            </label>
+                        </div>
+                    </div>
+
+                    <button onclick="createRoom()" data-i18n="imp_btn_create">Crea e Gioca</button>
+                    <p id="create-error" class="error"></p>
+                    <button class="home-btn" onclick="location.href='../../index.html'"
+                        style="margin-top: 15px; width: 100%; justify-content: center;">
+                        <span class="btn-icon">🏠</span> HOME
+                    </button>
+                </div>
+
+                <!-- Join Room -->
+                <div class="section">
+                    <h2 data-i18n="imp_lobby_join">Entra</h2>
+                    <input type="text" id="room-code-input" data-i18n="imp_placeholder_code" placeholder="Codice Stanza"
+                        style="text-transform: uppercase; text-align: center; letter-spacing: 3px;">
+                    <button onclick="joinRoom()" class="secondary" data-i18n="imp_btn_join">Entra</button>
+                    <p id="join-error" class="error"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: WAITING -->
+        <div id="waiting-screen" class="screen">
+            <h1><span data-i18n="imp_waiting_screen_title">Stanza:</span> <span id="display-room-code"></span></h1>
+            <div id="players-list"></div>
+            <p style="margin-top: 20px;" data-i18n="imp_waiting_host">In attesa dell'host...</p>
+            <button id="start-btn" onclick="startGame()" style="display: none;" data-i18n="imp_btn_start">INIZIA
+                PARTITA</button>
+            <button id="share-invite-btn" onclick="shareInviteLink()" class="secondary"
+                style="margin-top: 10px;">📤 <span data-i18n="share_invite">Condividi Invito</span></button>
+        </div>
+
+        <!-- SCREEN: WORD CHOOSER (playerWord mode — for the creator) -->
+        <div id="word-chooser-screen" class="screen">
+            <div class="chooser-card">
+                <h1 data-i18n="imp_chooser_title">✍️ Scegli la Parola Segreta</h1>
+                <p class="subtitle" data-i18n="imp_chooser_subtitle">Sei il creatore di questo round! Inserisci una
+                    parola che gli altri dovranno
+                    indovinare.</p>
+
+                <div class="form-group">
+                    <label data-i18n="imp_chooser_secret_label">Parola Segreta (4-10 lettere):</label>
+                    <input type="text" id="secret-word-input" data-i18n="imp_chooser_secret_placeholder"
+                        placeholder="La parola segreta..." maxlength="10"
+                        style="text-transform: uppercase; text-align: center; letter-spacing: 3px; font-size: 1.4rem;">
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="imp_chooser_hint_label">Indizio (opzionale, visibile a tutti):</label>
+                    <textarea id="hint-input" data-i18n="imp_chooser_hint_placeholder"
+                        placeholder="Un indizio per aiutare gli altri..." rows="3"
+                        style="width: 100%; padding: 12px; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: #fff; font-size: 1rem; resize: vertical;"></textarea>
+                </div>
+
+                <button onclick="submitSecretWord()" class="btn-green" data-i18n="imp_chooser_confirm"
+                    style="width: 100%; font-size: 1.2rem; padding: 15px;">
+                    🚀 CONFERMA E INIZIA
+                </button>
+                <p id="chooser-error" class="error"></p>
+            </div>
+        </div>
+
+        <!-- SCREEN: WAITING FOR CHOOSER (playerWord mode — for non-creators) -->
+        <div id="waiting-chooser-screen" class="screen">
+            <div class="waiting-chooser-card">
+                <div class="spinner"></div>
+                <h1 data-i18n="imp_wait_chooser_title">⏳ In Attesa...</h1>
+                <p class="subtitle" id="chooser-name-display-container">
+                    <span id="chooser-name-display" class="chooser-highlight"></span>
+                    sta scegliendo la parola segreta
+                </p>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 20px;" data-i18n="imp_wait_chooser_ready">
+                    Preparati a indovinare! 🎯</p>
+            </div>
+        </div>
+
+        <!-- SCREEN: GAME -->
+        <div id="game-screen" class="screen">
+            <div id="game-header">
+                <button class="home-btn" id="btn-home-game">
+                    <span class="btn-icon">🏠</span> HOME
+                </button>
+                <div id="creator-badge" style="display: none;">
+                    <span data-i18n="imp_creator_badge_prefix">✍️ Creatore:</span> <span id="game-creator-name"></span>
+                </div>
+                <div id="timer">30</div>
+                <div id="turn-indicator" data-i18n="marathon_status_waiting">In attesa...</div>
+            </div>
+
+            <!-- Hint Area (playerWord mode only) -->
+            <div id="hint-area" style="display: none;">
+                <div id="hint-box">
+                    <span class="hint-icon">💡</span>
+                    <span class="hint-label" data-i18n="imp_hint_label">Indizio:</span>
+                    <span id="hint-display">Nessun indizio</span>
+                </div>
+            </div>
+
+            <div id="game-layout">
+                <div id="game-main">
+                    <div id="word-grid"></div>
+
+                    <div id="keyboard-container">
+                        <div id="keyboard"></div>
+                    </div>
+
+                    <!-- Creator Panel (playerWord mode — only visible to word creator) -->
+                    <div id="creator-panel" style="display: none;">
+                        <h3 data-i18n="imp_creator_panel_title">🎮 Pannello Creatore</h3>
+                        <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 15px;"
+                            data-i18n="imp_creator_panel_desc">
+                            Stai osservando la partita. Puoi modificare l'indizio o rivelare lettere di aiuto.
+                        </p>
+
+                        <div class="creator-section">
+                            <label data-i18n="imp_creator_hint_label">Modifica Indizio:</label>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" id="creator-hint-input" data-i18n="imp_creator_hint_placeholder"
+                                    placeholder="Aggiorna l'indizio..." style="flex: 1;">
+                                <button onclick="sendHintUpdate()" class="btn-small"
+                                    data-i18n="imp_creator_hint_update">📤 Aggiorna</button>
+                            </div>
+                        </div>
+
+                        <div class="creator-section" style="margin-top: 15px;">
+                            <label data-i18n="imp_creator_reveal_label">Rivela una lettera di aiuto:</label>
+                            <div id="helper-letters-container" class="helper-letters-grid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="players-sidebar">
+                    <h3 data-i18n="imp_sidebar_leaderboard">🏆 Classifica</h3>
+                    <div id="players-status"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: GAME OVER -->
+        <div id="end-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h1 id="modal-title" data-i18n="imp_modal_title_win">🎉 Vittoria!</h1>
+                <p id="modal-subtitle"><span data-i18n="imp_modal_winner_prefix">Il vincitore è:</span> <span
+                        id="modal-winner" class="winner-text"></span></p>
+                <p><span data-i18n="imp_modal_word_prefix">La parola era:</span> <span id="modal-word"
+                        class="word-reveal"></span></p>
+                <p id="modal-score" style="display:none;"></p>
+
+                <div id="modal-controls">
+                    <button id="btn-new-game" onclick="nextRound()" class="btn-green" data-i18n="imp_btn_new_game">NUOVA
+                        PARTITA</button>
+                    <button id="btn-lobby" onclick="location.reload()" class="btn-blue" data-i18n="imp_btn_lobby">TORNA
+                        ALLA LOBBY</button>
+                </div>
+
+                <div id="host-options" style="display:none; margin-top: 15px;">
+                    <div id="next-length-container">
+                        <label style="color: #ccc;" data-i18n="imp_modal_score_label">Lunghezza prossima parola:</label>
+                        <select id="next-length-modal">
+                            <option value="5">5 Lettere</option>
+                            <option value="6">6 Lettere</option>
+                            <option value="7">7 Lettere</option>
+                            <option value="8">8 Lettere</option>
+                        </select>
+                    </div>
+                    <div id="next-language-container">
+                        <label style="color: #ccc; margin-top: 10px; display: block;"
+                            data-i18n="imp_label_language">Lingua
+                            / Language:</label>
+                        <select id="next-language-modal">
+                            <option value="it">🇮🇹 Italian Mode</option>
+                            <option value="en">🇬🇧 English Mode</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p id="modal-waiting-msg" style="display:none; color: #ccc; margin-top: 15px;"
+                    data-i18n="imp_modal_waiting">In attesa dell'host...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="audio-win" src="../../audio/audio_win.mp3" preload="auto"></audio>
+    <audio id="audio-myturn" src="../../audio/myturn.mp3" preload="auto"></audio>
+    <audio id="audio-tick" src="../../audio/tick.mp3" preload="auto"></audio>
+
+    <script src="client.js"></script>
+
+    <script>
+        // Toggle mode description, word length, and language visibility
+        document.querySelectorAll('input[name="gameMode"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                const isClassic = this.value === 'classic';
+                document.getElementById('mode-desc-classic').style.display = isClassic ? 'block' : 'none';
+                document.getElementById('mode-desc-playerWord').style.display = isClassic ? 'none' : 'block';
+                document.getElementById('word-length-group').style.display = isClassic ? 'block' : 'none';
+                document.getElementById('language-group').style.display = isClassic ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+
+</html>

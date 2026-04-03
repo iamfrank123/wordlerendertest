@@ -1,0 +1,1018 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Static radial gradient background – deep purple/navy with soft glows */
+    background:
+        radial-gradient(circle at 20% 30%, rgba(0, 230, 138, 0.25) 0%, transparent 40%),
+        radial-gradient(circle at 80% 20%, rgba(0, 212, 255, 0.25) 0%, transparent 40%),
+        radial-gradient(circle at 40% 80%, rgba(102, 126, 234, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 70% 90%, rgba(0, 230, 138, 0.15) 0%, transparent 40%),
+        linear-gradient(135deg, #190a33, #1a0b2e, #122240, #0a1b3f);
+    background-attachment: fixed;
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* ─── Floating Glass Bubbles (pure CSS) ─── */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.07) 2%, transparent 3%),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.07) 2%, transparent 3%);
+    background-size: 100px 100px, 150px 150px;
+    background-position: 0 0, 50px 50px;
+    animation: bubbleFloat 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes bubbleFloat {
+    0% { background-position: 0 0, 50px 50px; }
+    100% { background-position: 0 -100px, 50px -100px; }
+}
+
+#app {
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.screen {
+    display: none;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.screen.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* Lobby and waiting screens: allow free scroll */
+#lobby-screen.active,
+#waiting-screen.active {
+    min-height: auto;
+    padding: 30px 0;
+}
+
+/* Game screen */
+#game-screen.active {
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Typography */
+h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    text-align: center;
+    background: linear-gradient(90deg, #00d4ff, #00ff88);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #00d4ff;
+}
+
+h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #00ff88;
+}
+
+.subtitle {
+    color: #aaa;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #00d4ff;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+/* Radio and Checkbox Groups */
+.radio-group {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.radio-label:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #00d4ff;
+}
+
+.radio-label input[type="radio"] {
+    cursor: pointer;
+}
+
+/* Buttons */
+button {
+    padding: 12px 30px;
+    margin: 10px 5px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #00d4ff, #00ff88);
+    color: #1a1a2e;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+}
+
+button.secondary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+button.secondary:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Layout */
+.row {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+    margin-top: 20px;
+}
+
+.section {
+    flex: 1;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.error {
+    color: #ff4444;
+    margin-top: 10px;
+    font-size: 0.9rem;
+}
+
+/* Waiting Screen */
+#players-list {
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    min-width: 300px;
+}
+
+.player-item {
+    padding: 10px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.player-item.host::before {
+    content: "👑";
+}
+
+/* Game Screen */
+#game-screen {
+    width: 100%;
+}
+
+#game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    gap: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#timer {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #00ff88;
+    min-width: 70px;
+    text-align: center;
+    line-height: 1;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+}
+
+#timer.warning {
+    color: #ff4444;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+#turn-indicator {
+    font-size: 1.3rem;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+#turn-indicator.your-turn {
+    background: linear-gradient(135deg, #00d4ff, #00ff88);
+    color: #1a1a2e;
+    font-weight: bold;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+}
+
+/* Word Grid */
+#word-grid {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 24px 0 56px;
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+.letter-box {
+    width: 60px;
+    height: 70px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.05);
+    position: relative;
+}
+
+.letter-box.empty::after {
+    content: "";
+    position: absolute;
+    bottom: 10px;
+    width: 40px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.letter-box.revealed {
+    color: #00ff88;
+    border-color: #00ff88;
+    background: rgba(0, 255, 136, 0.1);
+    animation: revealLetter 0.5s ease-out;
+}
+
+@keyframes revealLetter {
+    0% {
+        transform: scale(0.5) rotateY(90deg);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1) rotateY(0);
+        opacity: 1;
+    }
+}
+
+/* Keyboard */
+#keyboard-container {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0;
+    width: 100%;
+}
+
+#keyboard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    max-width: 540px;
+    width: 100%;
+}
+
+.keyboard-row {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    width: 100%;
+}
+
+.key {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.key:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #00d4ff;
+    transform: translateY(-2px);
+}
+
+.key:active {
+    transform: scale(0.95);
+}
+
+.key.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.key.correct {
+    background: rgba(0, 255, 136, 0.2);
+    border-color: #00ff88;
+    color: #00ff88;
+}
+
+.key.incorrect {
+    background: rgba(255, 68, 68, 0.2);
+    border-color: #ff4444;
+    color: #ff4444;
+}
+
+/* Game Layout: 3-column trick to keep center truly centered */
+#game-layout {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    align-items: flex-start;
+    flex: 1;
+}
+
+/* Left spacer — mirrors the sidebar width so the center stays centered */
+#game-layout::before {
+    content: '';
+    width: 240px;
+    flex-shrink: 0;
+}
+
+#game-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+}
+
+/* Players Sidebar */
+#players-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    margin-left: 20px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+}
+
+#players-status {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+    /* Custom scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 212, 255, 0.4) transparent;
+}
+
+#players-status::-webkit-scrollbar {
+    width: 4px;
+}
+
+#players-status::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#players-status::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 255, 0.4);
+    border-radius: 4px;
+}
+
+.player-status-item {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.player-status-item.active-turn {
+    border-color: #00ff88;
+    background: rgba(0, 255, 136, 0.1);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+}
+
+.player-status-item .player-name {
+    font-weight: bold;
+}
+
+.player-status-item .player-score {
+    color: #00d4ff;
+    font-size: 1.1rem;
+}
+
+/* Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 30px;
+    /* Reduced from 40px */
+    border-radius: 15px;
+    /* Slightly smaller radius */
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    max-width: 450px;
+    /* Reduced from 500px */
+    max-height: 90vh;
+    /* Max height for viewport */
+    overflow-y: auto;
+    /* Enable vertical scrolling */
+    animation: scaleIn 0.4s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.winner-text {
+    color: #00ff88;
+    font-size: 1.8rem;
+    font-weight: bold;
+    display: block;
+    margin: 10px 0;
+}
+
+.word-reveal {
+    color: #00d4ff;
+    font-size: 2rem;
+    font-weight: bold;
+    letter-spacing: 3px;
+    display: block;
+    margin: 20px 0;
+}
+
+#modal-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+.btn-green {
+    background: linear-gradient(135deg, #00ff88, #00d4ff);
+}
+
+.btn-blue {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+select {
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    .row {
+        flex-direction: column;
+    }
+
+    #game-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #game-layout::before {
+        display: none;
+    }
+
+    #game-main {
+        width: 100%;
+        align-items: center;
+    }
+
+    #players-sidebar {
+        width: 100%;
+        margin-left: 0;
+        position: static;
+        max-height: 200px;
+    }
+
+    /* Dynamically scale so all N letters fit in one row — no wrapping */
+    #word-grid {
+        gap: 4px;
+        flex-wrap: nowrap;
+        overflow: visible;
+        padding: 0;
+        margin: 0 auto 30px auto;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .letter-box {
+        /* Fit --word-len boxes in available width minus padding/gaps */
+        width: calc((100vw - 40px - (var(--word-len, 5) - 1) * 4px) / var(--word-len, 5));
+        max-width: 52px;
+        height: calc((100vw - 40px - (var(--word-len, 5) - 1) * 4px) / var(--word-len, 5));
+        max-height: 52px;
+        font-size: clamp(0.85rem, 4vw, 1.5rem);
+        flex-shrink: 0;
+    }
+
+    #keyboard-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #keyboard {
+        gap: 5px;
+        max-width: 100%;
+        width: 100%;
+        padding: 0 4px;
+    }
+
+    .keyboard-row {
+        gap: 4px;
+        width: 100%;
+    }
+
+    .key {
+        flex: 1;
+        max-width: 38px;
+        min-width: 0;
+        height: 42px;
+        font-size: 0.9rem;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .key:active {
+        background: rgba(0, 212, 255, 0.3);
+    }
+
+    #game-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #timer {
+        font-size: 2rem;
+    }
+}
+
+/* Home Button */
+.home-btn {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+}
+
+.home-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.5);
+}
+
+.home-btn .btn-icon {
+    font-size: 1.1rem;
+}
+
+/* Leaderboard in Modal */
+#leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+}
+
+#leaderboard th,
+#leaderboard td {
+    padding: 9px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.95rem;
+}
+
+#leaderboard th {
+    color: #aaa;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#leaderboard td:last-child {
+    text-align: right;
+    color: #00d4ff;
+    font-weight: bold;
+}
+
+/* ================================
+   WORD CHOOSER SCREEN
+   ================================ */
+.chooser-card {
+    max-width: 500px;
+    width: 100%;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    animation: scaleIn 0.4s ease-out;
+}
+
+.chooser-card h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.chooser-card .subtitle {
+    margin-bottom: 25px;
+}
+
+/* ================================
+   WAITING FOR CHOOSER SCREEN
+   ================================ */
+.waiting-chooser-card {
+    max-width: 450px;
+    width: 100%;
+    padding: 50px 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(0, 212, 255, 0.2);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    text-align: center;
+    animation: scaleIn 0.4s ease-out;
+}
+
+.waiting-chooser-card h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.chooser-highlight {
+    color: #00ff88;
+    font-weight: bold;
+    font-size: 1.3rem;
+    display: inline-block;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #00d4ff;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ================================
+   HINT AREA (in game screen)
+   ================================ */
+#hint-area {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 10px;
+}
+
+#hint-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 136, 0.05));
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 12px;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.hint-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.hint-label {
+    color: #00d4ff;
+    font-weight: bold;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+#hint-display {
+    color: #fff;
+    font-size: 1rem;
+    word-break: break-word;
+}
+
+/* ================================
+   CREATOR BADGE (in game header)
+   ================================ */
+#creator-badge {
+    padding: 8px 16px;
+    background: rgba(255, 165, 0, 0.15);
+    border: 1px solid rgba(255, 165, 0, 0.4);
+    border-radius: 8px;
+    color: #ffa500;
+    font-size: 0.9rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* ================================
+   CREATOR PANEL
+   ================================ */
+#creator-panel {
+    max-width: 500px;
+    width: 100%;
+    margin: 20px auto;
+    padding: 25px;
+    background: rgba(255, 165, 0, 0.08);
+    border: 2px solid rgba(255, 165, 0, 0.25);
+    border-radius: 15px;
+}
+
+#creator-panel h3 {
+    color: #ffa500;
+    margin-bottom: 5px;
+}
+
+.creator-section {
+    margin-top: 10px;
+}
+
+.creator-section label {
+    display: block;
+    color: #ccc;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+/* ================================
+   HELPER LETTER BUTTONS
+   ================================ */
+.helper-letters-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.helper-letter-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 165, 0, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffa500;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.helper-letter-btn:hover:not(:disabled) {
+    background: rgba(255, 165, 0, 0.15);
+    border-color: #ffa500;
+    transform: translateY(-2px);
+}
+
+.helper-letter-btn.revealed {
+    background: rgba(0, 255, 136, 0.15);
+    border-color: #00ff88;
+    color: #00ff88;
+    cursor: default;
+}
+
+.helper-letter-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ================================
+   RESPONSIVE OVERRIDES
+   ================================ */
+@media (max-width: 768px) {
+
+    .chooser-card,
+    .waiting-chooser-card {
+        padding: 25px 20px;
+        margin: 0 10px;
+    }
+
+    .chooser-card h1,
+    .waiting-chooser-card h1 {
+        font-size: 1.5rem;
+    }
+
+    #creator-badge {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+
+    #hint-box {
+        flex-wrap: wrap;
+        padding: 10px 14px;
+    }
+
+    #creator-panel {
+        padding: 15px;
+    }
+
+    .helper-letter-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+}

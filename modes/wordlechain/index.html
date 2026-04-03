@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>⛓️ Word Chain Battle</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="../../client_translations.js"></script>
+    <script src="../../translation_manager.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- ════════════════════════ LOBBY ════════════════════════ -->
+        <div id="lobby-screen" class="screen active">
+            <h1 data-i18n="wc_title">⛓️ WORD CHAIN</h1>
+            <p class="subtitle" data-i18n="wc_subtitle">Fast-paced multiplayer word battle! Form words, survive the
+                chain!</p>
+
+            <div class="form-group" style="max-width:420px; width:100%;">
+                <label data-i18n="wc_label_nick">Nickname & Avatar</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button id="avatar-btn" class="avatar-btn" type="button" onclick="cycleAvatar()"
+                        title="Change Avatar">🐶</button>
+                    <input type="text" id="nickname" placeholder="Your name..." data-i18n="wc_placeholder_nick"
+                        maxlength="12" style="flex: 1;">
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Create Room -->
+                <div class="section">
+                    <h2 data-i18n="wc_lobby_create">Create Room</h2>
+
+                    <div class="form-group">
+                        <label data-i18n="wc_label_language">Lingua / Language:</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="language" value="it" checked> 🇮🇹 Italiano
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="language" value="en"> 🇬🇧 English
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label class="checkbox-label"
+                            style="display:flex; align-items:center; gap:8px; font-size: 0.95rem; color: #eee; cursor: pointer;">
+                            <input type="checkbox" id="timer-restriction" checked>
+                            <span data-i18n="wc_timer_restrict_label">⏳ Timer Restriction (Dopo 20 cicli)</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="checkbox-label"
+                            style="display:flex; align-items:center; gap:8px; font-size: 0.95rem; color: #ffc107; cursor: pointer;">
+                            <input type="checkbox" id="points-mode" onchange="togglePointsOptions()">
+                            <span>⭐ Play with Points</span>
+                        </label>
+                    </div>
+
+                    <div id="points-options" style="display:none; margin-top:8px;">
+                        <label style="color:#ccc; font-size:0.85rem;">🎯 Target Score:</label>
+                        <div class="target-presets">
+                            <button class="preset-btn" type="button" onclick="setTargetPreset(200)">200</button>
+                            <button class="preset-btn active" type="button" onclick="setTargetPreset(300)">300</button>
+                            <button class="preset-btn" type="button" onclick="setTargetPreset(500)">500</button>
+                            <button class="preset-btn" type="button" onclick="setTargetPreset(1000)">1000</button>
+                        </div>
+                        <input type="number" id="target-score-input" value="300" min="50" step="50"
+                            style="text-align:center; margin-top:6px; width:100%;">
+                    </div>
+
+                    <button onclick="createRoom()" data-i18n="wc_btn_create">⛓️ Create & Play</button>
+
+                    <button class="home-btn" onclick="location.href='../../index.html'"
+                        style="margin-top: 15px; width: 100%; justify-content: center;">
+                        <span class="btn-icon">🏠</span> HOME
+                    </button>
+                </div>
+
+                <!-- Join Room -->
+                <div class="section">
+                    <h2 data-i18n="wc_lobby_join">Join a Room</h2>
+                    <p style="color:#aaa; margin-bottom:16px; font-size:0.95rem;" data-i18n="wc_join_desc">
+                        Enter the room code from the host.
+                    </p>
+                    <input type="text" id="room-code-input" placeholder="Room Code" data-i18n="wc_placeholder_code"
+                        style="text-transform: uppercase; text-align: center; letter-spacing: 3px;">
+                    <button onclick="joinRoom()" class="secondary" data-i18n="wc_btn_join">Join</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════ WAITING SCREEN ════════════════════ -->
+        <div id="waiting-screen" class="screen">
+            <h1 data-i18n="wc_waiting_title">⛓️ WORD CHAIN</h1>
+            <h2><span data-i18n="wc_waiting_room">Room: </span><span id="display-room-code"
+                    style="letter-spacing:4px;"></span></h2>
+            <p style="color:#aaa; margin-bottom:8px;" data-i18n="wc_share_code">Share the code with friends — 2–8
+                players!</p>
+
+            <div id="target-display" class="target-display" style="display:none;">🎯 Target: 300 pts</div>
+            <div id="round-timer-display" class="target-display"
+                style="margin-top:5px; background:rgba(6,182,212,0.1); border-color:rgba(6,182,212,0.3); color:#0cd2f5;">
+                ⏳ Timer: 13s</div>
+
+            <div id="host-target-controls" class="host-target-controls" style="display:none;">
+                <label style="color:#ccc; font-size:0.85rem;">Adjust Target:</label>
+                <div style="display:flex; gap:8px; align-items:center; margin-top:5px; justify-content:center;">
+                    <input type="number" id="waiting-target-input" value="300" min="50" step="50"
+                        style="width:100px; text-align:center;">
+                    <button class="small-btn" onclick="updateWaitingTarget()">Update</button>
+                </div>
+            </div>
+
+            <div id="host-timer-controls" class="host-target-controls" style="display:none; margin-top:10px;">
+                <label style="color:#ccc; font-size:0.85rem;">Adjust Round Timer (sec):</label>
+                <div style="display:flex; gap:8px; align-items:center; margin-top:5px; justify-content:center;">
+                    <input type="number" id="waiting-timer-input" value="13" min="5" step="1"
+                        style="width:100px; text-align:center;">
+                    <button class="small-btn" onclick="updateWaitingTimer()">Update</button>
+                </div>
+            </div>
+
+            <p id="waiting-host-msg" style="margin-top: 20px; color:#aaa;" data-i18n="wc_waiting_host">Waiting for host
+                to start...</p>
+            <button id="start-btn" onclick="startGame()" style="display:none; margin-top:15px; margin-bottom:15px;"
+                data-i18n="wc_btn_start">
+                ▶ START GAME
+            </button>
+            <button id="share-invite-btn" onclick="shareInviteLink()" class="secondary"
+                style="margin-top: 5px; margin-bottom: 10px;">📤 <span data-i18n="share_invite">Condividi
+                    Invito</span></button>
+
+            <div id="players-list" style="margin-top: 5px;"></div>
+        </div>
+
+        <!-- ════════════════════ GAME SCREEN ════════════════════ -->
+        <div id="game-screen" class="screen">
+
+            <!-- Header -->
+            <div id="game-header">
+                <button class="home-btn" onclick="leaveRoom()">
+                    <span class="btn-icon">🏠</span> EXIT
+                </button>
+
+                <div id="turn-info" style="display:flex; align-items:center; gap:15px; justify-content:center;">
+                    <span id="turn-label" class="turn-label" data-i18n="wc_turn_waiting">Waiting...</span>
+                    <button id="skip-turn-btn" onclick="skipTurn()" class="small-btn"
+                        style="display:none; background:#ff4757; color:white; border:none; padding:5px 10px; font-weight:bold; border-radius:5px; cursor:pointer; font-size:0.8rem; box-shadow:0 0 10px rgba(255,71,87,0.3);">
+                        ⏭️ SKIP TURN
+                    </button>
+                </div>
+
+                <div class="timer-container">
+                </div>
+            </div>
+
+            <div id="target-bar-container" style="display:none;">
+                <span id="target-display-game" class="target-display-inline">🎯 Target: 300 pts</span>
+                <div id="host-adjust-target" class="host-adjust-inline" style="display:none;">
+                    <input type="number" id="ingame-target-input" value="300" min="50" step="50">
+                    <button class="small-btn" onclick="adjustTargetInGame()">Set</button>
+                </div>
+            </div>
+
+            <!-- Timer adjust bar (visible to host in all modes) -->
+            <div id="timer-bar-container" style="display:none; margin-top:5px;">
+                <span id="timer-display-game" class="target-display-inline"
+                    style="color:#0cd2f5; border-color:rgba(6,182,212,0.3); background:rgba(6,182,212,0.1);">⏳ Round:
+                    13s</span>
+                <div id="host-adjust-timer" class="host-adjust-inline" style="display:none;">
+                    <input type="number" id="ingame-timer-input" value="13" min="5" step="1">
+                    <button class="small-btn" onclick="adjustTimerInGame()"
+                        style="background:#0cd2f5; color:#000;">Set</button>
+                </div>
+            </div>
+
+            <!-- Game Layout: two columns -->
+            <div id="game-layout">
+
+                <!-- Left Column: Main game area -->
+                <div id="game-main">
+                    <!-- Chain Prefix Display -->
+                    <div id="chain-display">
+                        <div class="chain-label" data-i18n="wc_chain_starts">STARTS WITH</div>
+                        <div id="current-prefix" class="chain-prefix">—</div>
+                        <div class="chain-timer">
+                            <div id="turn-timer" class="">13s</div>
+                            <div id="timer-bar-wrap">
+                                <div id="timer-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Preview -->
+                    <div id="live-preview-container" onclick="document.getElementById('word-input').focus()">
+                        <div id="live-preview" class="live-preview" style="cursor: text;"></div>
+                    </div>
+
+                    <!-- Input Area (Visually hidden but functional) -->
+                    <div id="word-input-container" style="opacity: 0; position: absolute; pointer-events: none;">
+                        <div class="prefix-badge" id="prefix-badge"></div>
+                        <input type="text" id="word-input" data-i18n="wc_placeholder_word" placeholder="Type here..."
+                            autocomplete="nope" autocorrect="off" autocapitalize="off" spellcheck="false"
+                            data-lpignore="true" data-form-type="other">
+                        <button id="submit-btn" onclick="submitWord()" data-i18n="wc_btn_submit">SEND</button>
+                    </div>
+
+                    <!-- Reaction Bar -->
+                    <div id="reaction-bar">
+                        <button class="reaction-btn" onclick="sendReaction('😂')">😂</button>
+                        <button class="reaction-btn" onclick="sendReaction('😮')">😮</button>
+                        <button class="reaction-btn" onclick="sendReaction('👏')">👏</button>
+                        <button class="reaction-btn" onclick="sendReaction('❤️')">❤️</button>
+                        <button class="reaction-btn" onclick="sendReaction('🔥')">🔥</button>
+                        <button class="reaction-btn" onclick="sendReaction('💀')">💀</button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Players panel -->
+                <div id="players-panel">
+                    <h3 data-i18n="wc_players_list">👥 Players</h3>
+                    <div id="players-game-list"></div>
+                </div>
+
+                <!-- Left Column: Word History panel -->
+                <div id="word-history-container">
+                    <h3 data-i18n="wc_word_history">📝 Word History</h3>
+                    <div id="word-history"></div>
+                </div>
+
+            </div>
+
+            <!-- Floating Emoji Container -->
+            <div id="emoji-reactions"></div>
+
+            <!-- Mobile Virtual Keyboard removed to avoid redundancy since native keyboard is sufficient -->
+
+        </div>
+
+        <!-- ════════════════ LETTER PICKER OVERLAY ════════════════ -->
+        <div id="letter-picker-overlay" style="display:none;">
+            <div class="letter-picker-content">
+                <h2 data-i18n="wc_picker_title">⛓️ Pick a Starting Letter</h2>
+                <p data-i18n="wc_picker_desc">Choose the letter your opponent must start with!</p>
+                <div class="letter-grid" id="letter-grid"></div>
+            </div>
+        </div>
+
+        <!-- ════════════════ END GAME MODAL ════════════════ -->
+        <div id="end-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h1 id="modal-title" data-i18n="wc_modal_title_end">🏆 Game Over</h1>
+                <p id="modal-subtitle" style="color:#ccc; margin-bottom:12px;"></p>
+
+                <div id="end-leaderboard" class="end-leaderboard-scroll"></div>
+
+                <div id="host-end-controls" style="display:none; margin-top:20px;">
+                    <button class="btn-green" onclick="restartGame()" data-i18n="wc_btn_again">🔄 Play Again</button>
+                </div>
+
+                <div id="leave-confirm-container"
+                    style="display:none; margin-top:15px; background: rgba(255,50,50,0.1); padding:10px; border-radius:8px; border: 1px solid rgba(255,50,50,0.3);">
+                    <p style="color:#ffb5b5; font-size:0.9rem; margin-bottom:10px;">
+                        Are you sure you want to leave? The host might start a rematch soon and you don't need to return
+                        to the lobby!
+                    </p>
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <button class="btn-purple" onclick="location.reload()"
+                            style="flex:1; padding:8px; font-size:0.9rem;">Yes, leave</button>
+                        <button class="secondary" onclick="toggleLeaveConfirm(false)"
+                            style="flex:1; padding:8px; font-size:0.9rem;">Cancel</button>
+                    </div>
+                </div>
+
+                <button id="btn-leave-initial" class="btn-purple" onclick="toggleLeaveConfirm(true)"
+                    style="margin-top:10px;" data-i18n="wc_btn_lobby">
+                    🚪 Back to Lobby
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toast-container"></div>
+
+    </div><!-- /app -->
+
+    <!-- Audio -->
+    <audio id="audio-typing" src="typingsound.mp3" preload="auto"></audio>
+    <audio id="audio-timer" src="timerchain.mp3" preload="auto"></audio>
+    <audio id="audio-myturn" src="../../audio/myturn.mp3" preload="auto"></audio>
+    <audio id="audio-error" src="../../audio/audio_turn.mp3" preload="auto"></audio>
+    <audio id="audio-win" src="../../audio/audio_win.mp3" preload="auto"></audio>
+    <audio id="audio-wrongword" src="wrongword.mp3" preload="auto"></audio>
+    <audio id="audio-clapping" src="clapping.mp3" preload="auto"></audio>
+
+    <script src="client.js"></script>
+    <script>
+        function togglePointsOptions() {
+            const cb = document.getElementById('points-mode');
+            const opts = document.getElementById('points-options');
+            if (opts) opts.style.display = cb && cb.checked ? 'block' : 'none';
+        }
+
+        function updateWaitingTarget() {
+            const val = parseInt(document.getElementById('waiting-target-input')?.value, 10);
+            if (isNaN(val) || val < 50) return showToast('Target must be at least 50!', 'error');
+            socket.emit('setTargetScore', val);
+        }
+
+        function updateWaitingTimer() {
+            const val = parseInt(document.getElementById('waiting-timer-input')?.value, 10);
+            if (isNaN(val) || val < 5) return showToast('Timer must be at least 5s!', 'error');
+            socket.emit('setRoundTimer', val);
+        }
+
+        function toggleLeaveConfirm(show) {
+            const container = document.getElementById('leave-confirm-container');
+            const btnInitial = document.getElementById('btn-leave-initial');
+            if (container) container.style.display = show ? 'block' : 'none';
+            if (btnInitial) btnInitial.style.display = show ? 'none' : 'block';
+        }
+    </script>
+</body>
+
+</html>

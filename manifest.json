@@ -1,0 +1,21 @@
+{
+    "name": "Wordle Multiplayer",
+    "short_name": "Wordle",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#0f0f1e",
+    "theme_color": "#0f0f1e",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "immagini/splash.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "immagini/splash.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

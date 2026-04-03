@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parole XL - Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../../client_translations.js"></script>
+    <script src="../../translation_manager.js"></script>
+</head>
+
+<body>
+
+    <div id="app">
+        <!-- SCREEN: LOBBY -->
+        <div id="lobby-screen" class="screen active">
+            <h1 data-i18n="xl_title">PAROLE XL</h1>
+
+            <div class="form-group">
+                <label data-i18n="ava_label_nick">Nickname</label>
+                <input type="text" id="nickname" data-i18n="xl_placeholder_nick" placeholder="Il tuo nome..."
+                    maxlength="12">
+            </div>
+
+            <div class="row">
+                <!-- Create Room -->
+                <div class="section"
+                    style="flex: 1; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-right: 10px;">
+                    <h2 data-i18n="xl_lobby_create">Crea Stanza</h2>
+                    <!-- ... existing form ... -->
+
+                    <div class="form-group">
+                        <label data-i18n="xl_label_word_length">Lunghezza Parole:</label>
+                        <div class="checkbox-group" id="length-options">
+                            <label class="checkbox-label checked">5<input type="checkbox" value="5" checked></label>
+                            <label class="checkbox-label">6<input type="checkbox" value="6"></label>
+                            <label class="checkbox-label">7<input type="checkbox" value="7"></label>
+                            <label class="checkbox-label">8<input type="checkbox" value="8"></label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-i18n="xl_label_game_mode">Modalità di Gioco:</label>
+                        <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 15px;">
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" id="mode-turns" value="turns" checked>
+                                <span data-i18n="xl_mode_turns">⏱️ Turni (45s)</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" id="mode-realtime" value="realtime">
+                                <span data-i18n="xl_mode_realtime">⚡ No Turni (Gara)</span>
+                            </label>
+                        </div>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label"><input type="checkbox" id="shuffle-mode"> Shuffle Mode</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-i18n="xl_label_language">Lingua / Language:</label>
+                        <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 15px;">
+                            <label class="radio-label">
+                                <input type="radio" name="language" id="lang-it" value="it" checked>
+                                🇮🇹 Italian Mode
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="language" id="lang-en" value="en">
+                                🇬🇧 English Mode
+                            </label>
+                        </div>
+                    </div>
+
+                    <button onclick="createRoom()" data-i18n="xl_btn_create">Crea e Gioca</button>
+                    <p id="create-error" style="color: red; margin-top: 10px;"></p>
+
+                    <button class="home-btn" onclick="location.href='../../index.html'"
+                        style="margin-top: 15px; width: 100%; justify-content: center;">
+                        <span class="btn-icon">🏠</span> HOME
+                    </button>
+                </div>
+
+                <!-- Join Room -->
+                <div style="flex: 1; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                    <h2 data-i18n="xl_lobby_join">Entra</h2>
+                    <input type="text" id="room-code-input" data-i18n="xl_placeholder_code" placeholder="Codice Stanza"
+                        style="text-transform: uppercase; text-align: center; letter-spacing: 3px;">
+                    <button onclick="joinRoom()" class="secondary" data-i18n="xl_btn_join">Entra</button>
+                    <p id="join-error" style="color: red; margin-top: 10px;"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: WAITING -->
+        <div id="waiting-screen" class="screen">
+            <h1><span data-i18n="imp_waiting_screen_title">Stanza:</span> <span id="display-room-code"></span></h1>
+            <div id="players-list"></div>
+            <p style="margin-top: 20px;" data-i18n="xl_waiting_host">In attesa dell'host...</p>
+            <button id="start-btn" onclick="startGame()" style="display: none;" data-i18n="xl_btn_start">INIZIA
+                PARTITA</button>
+            <button id="share-invite-btn" onclick="shareInviteLink()" class="secondary"
+                style="margin-top: 10px;">📤 <span data-i18n="share_invite">Condividi Invito</span></button>
+        </div>
+
+        <!-- SCREEN: GAME -->
+        <div id="game-screen" class="screen">
+            <div id="game-header">
+                <button class="home-btn" id="btn-home-game">
+                    <span class="btn-icon">🏠</span> HOME
+                </button>
+                <div id="timer">--:--</div>
+                <div><span data-i18n="xl_length_label">Lunghezza:</span> <span id="current-length">5</span></div>
+                <div id="turn-indicator" data-i18n="marathon_status_waiting">In attesa...</div>
+            </div>
+
+            <div id="game-container-flex" style="display: flex; width: 100%; height: 100%; overflow: hidden;">
+                <!-- Main Game Column -->
+                <div id="game-main-col" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                    <div id="game-area">
+                        <div id="grid-container"></div>
+                    </div>
+
+                    <div id="keyboard"></div>
+
+                    <div id="opponent-status" class="legacy-opponent-status">
+                        <h3 data-i18n="xl_opponents_label">Avversari</h3>
+                        <div id="opponent-list"></div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar (Leaderboard) -->
+                <div id="leaderboard-sidebar"
+                    style="display: none; width: 250px; background: rgba(0,0,0,0.3); border-left: 1px solid rgba(255,255,255,0.1); padding: 15px; flex-direction: column;">
+                    <h3 style="margin-top: 0; color: gold; text-align: center; margin-bottom: 20px;"
+                        data-i18n="xl_sidebar_leaderboard">🏆 CLASSIFICA</h3>
+                    <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- JS generated items -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emoji Reaction Panel -->
+            <div id="emoji-panel">
+
+                <!-- Emoji Reaction Panel -->
+                <div id="emoji-panel">
+                    <button class="emoji-button" data-emoji="😂" title="Laugh">😂</button>
+                    <button class="emoji-button" data-emoji="🔥" title="Fire">🔥</button>
+                    <button class="emoji-button" data-emoji="😱" title="Shocked">😱</button>
+                    <button class="emoji-button" data-emoji="🎉" title="Party">🎉</button>
+                    <button class="emoji-button" data-emoji="😎" title="Cool">😎</button>
+                    <button class="emoji-button" data-emoji="💪" title="Strong">💪</button>
+                    <button class="emoji-button" data-emoji="🤔" title="Thinking">🤔</button>
+                    <button class="emoji-button" data-emoji="❤️" title="Love">❤️</button>
+                </div>
+
+                <!-- Emoji Reactions Display -->
+                <div id="emoji-reactions-display"></div>
+            </div>
+
+            <!-- MODAL: GAME OVER -->
+            <div id="end-modal" class="modal-overlay">
+                <div class="modal-content">
+                    <h1 id="modal-title" data-i18n="xl_modal_title_end">Partita Finita!</h1>
+                    <p id="modal-subtitle"><span data-i18n="xl_modal_word_prefix">La parola era:</span> <span
+                            id="modal-word" class="green-text">-----</span></p>
+
+                    <div id="modal-controls">
+                        <button id="btn-new-game" onclick="nextRound()" class="btn-green"
+                            data-i18n="xl_btn_new_game">NUOVA PARTITA</button>
+                        <button id="btn-lobby" onclick="location.reload()" class="btn-blue"
+                            data-i18n="xl_btn_lobby">TORNA ALLA LOBBY</button>
+                    </div>
+
+                    <div id="host-options" style="display:none; margin-top: 15px;">
+                        <select id="next-length-modal"
+                            style="padding: 10px; border-radius: 5px; background: rgba(0,0,0,0.3); color: white; border: 1px solid #444;">
+                            <option value="5">5 Lettere</option>
+                            <option value="6">6 Lettere</option>
+                            <option value="7">7 Lettere</option>
+                            <option value="8">8 Lettere</option>
+                        </select>
+                        <label style="color: #ccc; margin-top: 10px; display: block;"
+                            data-i18n="xl_label_language">Lingua / Language:</label>
+                        <select id="next-language-modal"
+                            style="padding: 10px; border-radius: 5px; background: rgba(0,0,0,0.3); color: white; border: 1px solid #444; margin-top: 5px;">
+                            <option value="it">🇮🇹 Italian Mode</option>
+                            <option value="en">🇬🇧 English Mode</option>
+                        </select>
+                    </div>
+
+                    <p id="modal-waiting-msg" style="display:none; color: #ccc; margin-top: 15px;"
+                        data-i18n="xl_modal_waiting">In attesa
+                        dell'host...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audio Elements -->
+        <audio id="audio-win" src="../../audio/audio_win.mp3" preload="auto"></audio>
+        <audio id="audio-myturn" src="../../audio/myturn.mp3" preload="auto"></audio>
+        <audio id="audio-tick" src="../../audio/tick.mp3" preload="auto"></audio>
+
+        <script src="client.js"></script>
+</body>
+
+</html>

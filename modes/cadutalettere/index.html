@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🔤 Lettere in Caduta – Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../../client_translations.js"></script>
+    <script src="../../translation_manager.js"></script>
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- ════════════════════════════════════ LOBBY ════════════════════════════════════ -->
+        <div id="lobby-screen" class="screen active">
+            <h1>🔤 LETTERE IN CADUTA</h1>
+            <p class="subtitle">Digita le lettere che cadono prima che tocchino il fondo! ⚡</p>
+
+            <div class="form-group" style="max-width:420px; width:100%;">
+                <label>👤 Nickname</label>
+                <input type="text" id="nickname" placeholder="Il tuo nome..." maxlength="12">
+            </div>
+
+            <div class="row">
+                <!-- Create Room -->
+                <div class="section">
+                    <h2>🎮 Crea Stanza</h2>
+
+                    <div class="form-group">
+                        <label>🏆 Modalità di Gioco:</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" value="time" checked> ⏱️ Tempo
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" value="points"> 🎯 Obiettivo Punti
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label id="game-mode-value-label">⏱️ Durata:</label>
+                        <select id="game-mode-value">
+                            <option value="60">1 Minuto</option>
+                            <option value="180" selected>3 Minuti</option>
+                            <option value="300">5 Minuti</option>
+                            <option value="600">10 Minuti</option>
+                        </select>
+                    </div>
+
+                    <button onclick="createRoom()">🚀 Crea e Gioca</button>
+                    <p id="create-error" class="error"></p>
+
+                    <button class="home-btn" onclick="location.href='../../index.html'"
+                        style="margin-top: 15px; width: 100%; justify-content: center;">
+                        <span class="btn-icon">🏠</span> HOME
+                    </button>
+                </div>
+
+                <!-- Join Room -->
+                <div class="section">
+                    <h2>🚪 Entra in una Stanza</h2>
+                    <p style="color:rgba(255,255,255,0.5); margin-bottom:16px; font-size:0.95rem;">
+                        Inserisci il codice stanza fornito dall'host.
+                    </p>
+                    <input type="text" id="room-code-input" placeholder="Codice Stanza"
+                        style="text-transform: uppercase; text-align: center; letter-spacing: 4px;">
+                    <button onclick="joinRoom()" class="secondary">Entra</button>
+                    <p id="join-error" class="error"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════ WAITING SCREEN ════════════════════════════════ -->
+        <div id="waiting-screen" class="screen">
+            <h1>🔤 LETTERE IN CADUTA</h1>
+            <h2>Stanza: <span id="display-room-code" style="letter-spacing:5px; color:#06b6d4;"></span></h2>
+            <p style="color:rgba(255,255,255,0.5); margin-bottom:8px;">
+                Condividi il codice con gli amici — nessun limite di giocatori! 🎉
+            </p>
+
+            <div id="players-list"></div>
+
+            <p style="margin-top: 20px; color:rgba(255,255,255,0.5);">In attesa dell'host per iniziare...</p>
+            <button id="start-btn" onclick="startGame()" style="display:none; margin-top:20px;">
+                ▶ INIZIA PARTITA
+            </button>
+        </div>
+
+        <!-- ═════════════════════════════════ GAME SCREEN ══════════════════════════════════ -->
+        <div id="game-screen" class="screen">
+
+            <!-- Header -->
+            <div id="game-header">
+                <button class="home-btn" id="btn-exit-game">
+                    <span class="btn-icon">🏠</span> ESCI
+                </button>
+
+                <div class="game-info-bar">
+                    <!-- Score -->
+                    <div class="score-container">
+                        <span class="score-label">PUNTI</span>
+                        <span id="score-value">0</span>
+                    </div>
+
+                    <!-- Speed -->
+                    <div id="speed-indicator" class="speed-indicator speed-normal">⚡ NORMALE</div>
+
+                    <!-- Timer (time mode) -->
+                    <div id="timer-container" style="display:none;">
+                        <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">⏱️</span>
+                        <span id="timer-display">3:00</span>
+                    </div>
+
+                    <!-- Target (points mode) -->
+                    <div id="target-container" style="display:none;">
+                        <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">🎯</span>
+                        <span id="target-value" style="color:#a855f7; font-weight:700;">500</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Area -->
+            <div id="game-area"></div>
+
+            <!-- Feedback -->
+            <div id="feedback-msg" class="feedback-msg"></div>
+
+            <!-- Speed Change Notification -->
+            <div id="speed-notification"></div>
+
+            <!-- Mobile Virtual Keyboard -->
+            <div id="mobile-keyboard-container">
+                <!-- Row 1 -->
+                <div class="mobile-key-row">
+                    <button class="mob-key" data-mob-key="Q">Q</button>
+                    <button class="mob-key" data-mob-key="W">W</button>
+                    <button class="mob-key" data-mob-key="E">E</button>
+                    <button class="mob-key" data-mob-key="R">R</button>
+                    <button class="mob-key" data-mob-key="T">T</button>
+                    <button class="mob-key" data-mob-key="Y">Y</button>
+                    <button class="mob-key" data-mob-key="U">U</button>
+                    <button class="mob-key" data-mob-key="I">I</button>
+                    <button class="mob-key" data-mob-key="O">O</button>
+                    <button class="mob-key" data-mob-key="P">P</button>
+                </div>
+                <!-- Row 2 -->
+                <div class="mobile-key-row">
+                    <button class="mob-key" data-mob-key="A">A</button>
+                    <button class="mob-key" data-mob-key="S">S</button>
+                    <button class="mob-key" data-mob-key="D">D</button>
+                    <button class="mob-key" data-mob-key="F">F</button>
+                    <button class="mob-key" data-mob-key="G">G</button>
+                    <button class="mob-key" data-mob-key="H">H</button>
+                    <button class="mob-key" data-mob-key="J">J</button>
+                    <button class="mob-key" data-mob-key="K">K</button>
+                    <button class="mob-key" data-mob-key="L">L</button>
+                </div>
+                <!-- Row 3 -->
+                <div class="mobile-key-row">
+                    <button class="mob-key" data-mob-key="Z">Z</button>
+                    <button class="mob-key" data-mob-key="X">X</button>
+                    <button class="mob-key" data-mob-key="C">C</button>
+                    <button class="mob-key" data-mob-key="V">V</button>
+                    <button class="mob-key" data-mob-key="B">B</button>
+                    <button class="mob-key" data-mob-key="N">N</button>
+                    <button class="mob-key" data-mob-key="M">M</button>
+                </div>
+            </div>
+
+            <!-- Live Leaderboard -->
+            <div id="live-leaderboard-container">
+                <h3>🏆 Classifica Live</h3>
+                <div id="live-leaderboard"></div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════ END GAME MODAL ══════════════════════════════════ -->
+        <div id="end-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h1 id="modal-title">🎉 Fine Partita!</h1>
+                <p id="modal-subtitle" style="color:rgba(255,255,255,0.6); margin-bottom:12px;"></p>
+
+                <div id="final-leaderboard"></div>
+
+                <!-- Host-only: change config before next game -->
+                <div id="host-options">
+                    <label>🏆 Prossima Modalità:</label>
+                    <select id="next-mode-modal">
+                        <option value="time">⏱️ Tempo</option>
+                        <option value="points">🎯 Obiettivo Punti</option>
+                    </select>
+                    <label>Valore:</label>
+                    <select id="next-value-modal">
+                        <option value="60">1 Minuto / 60 Punti</option>
+                        <option value="180">3 Minuti / 180 Punti</option>
+                        <option value="300">5 Minuti / 300 Punti</option>
+                        <option value="500">500 Punti</option>
+                        <option value="1000">1000 Punti</option>
+                    </select>
+                </div>
+
+                <div id="modal-controls">
+                    <button id="btn-new-game" class="btn-green" onclick="newGame()">
+                        🔄 Nuova Partita
+                    </button>
+                    <button class="btn-purple" onclick="location.reload()">
+                        🚪 Torna alla Lobby
+                    </button>
+                </div>
+
+                <p id="modal-waiting-msg" style="display:none; color:rgba(255,255,255,0.5); margin-top:14px;">
+                    In attesa che l'host avvii una nuova partita...
+                </p>
+            </div>
+        </div>
+
+    </div><!-- /#app -->
+
+    <!-- Audio -->
+    <audio id="audio-win" src="../../audio/audio_win.mp3" preload="auto"></audio>
+    <audio id="audio-correct" src="../../audio/typingsound.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="../../audio/audio_turn.mp3" preload="auto"></audio>
+
+    <script src="client.js"></script>
+</body>
+
+</html>

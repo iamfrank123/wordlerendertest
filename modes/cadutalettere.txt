@@ -1,0 +1,160 @@
+Modalità Multiplayer – “Lettere in Caduta”
+Descrizione generale
+
+Questa modalità è un gioco di parole multiplayer basato su riflessi e velocità di digitazione.
+
+Durante la partita, lettere casuali dell’alfabeto cadono dall’alto dello schermo.
+I giocatori devono digitare le lettere corrette prima che tocchino il fondo per guadagnare punti.
+
+La modalità è asincrona ma sincronizzata negli eventi:
+
+tutti i giocatori vedono la stessa sequenza di lettere e gli stessi eventi di velocità
+
+ogni giocatore gioca localmente
+
+si confrontano tramite classifica punteggi
+
+Meccanica principale
+Caduta delle lettere
+
+Le lettere dell’alfabeto cadono dall’alto dello schermo verso il basso.
+
+Ogni lettera appare all’interno di una piccola casella.
+
+I giocatori devono digitare la lettera corrispondente sulla tastiera prima che tocchi il fondo.
+
+Se il giocatore digita correttamente:
+
+la lettera viene eliminata
+
+il giocatore ottiene punti
+
+Se la lettera tocca il fondo senza essere digitata:
+
+la lettera scompare
+
+nessuna penalità
+
+Sistema di punteggio
+Azioni del giocatore
+
+Lettera digitata correttamente
+
++10 punti
+
+Lettera digitata errata
+(quando la lettera digitata non è presente tra quelle sullo schermo)
+
+−5 punti
+
+Lettera che cade fino al fondo
+
+nessuna penalità
+
+Sistema di velocità dinamica
+
+La velocità di caduta delle lettere cambia durante la partita.
+
+Ciclo di velocità
+
+Ogni 20 secondi viene generato un nuovo evento di velocità casuale.
+
+Valori di velocità
+
+La velocità può variare da 4 a 7.
+
+Velocità	Descrizione
+4	leggermente lenta
+5	velocità standard
+6	più veloce della standard
+7	molto veloce
+Probabilità degli eventi
+Velocità	Probabilità
+5 (standard)	80%
+4 o 6	10% ciascuna (20% totale)
+7	10%
+
+Questo crea momenti di gioco più intensi senza rendere la difficoltà troppo imprevedibile.
+
+Sincronizzazione multiplayer
+
+Tutti i giocatori condividono:
+
+stessa sequenza di lettere
+
+stessi eventi di velocità
+
+stessi intervalli di tempo
+
+Tuttavia:
+
+ogni giocatore gioca individualmente
+
+l’interazione con gli altri è solo tramite classifica dei punteggi
+
+Modalità di partita
+
+L’host della partita può scegliere tra due modalità di vittoria.
+
+1️⃣ Modalità Obiettivo Punti
+
+L’host imposta un target di punti.
+
+Esempio:
+
+partita a 1000 punti
+
+Quando un giocatore raggiunge il punteggio target:
+
+la partita termina
+
+viene generata la classifica finale
+
+Classifica
+
+I giocatori vengono ordinati in base ai punti:
+
+1° posto
+2° posto
+3° posto
+ecc.
+
+2️⃣ Modalità Tempo
+
+L’host imposta una durata della partita.
+
+Esempi:
+
+3 minuti
+
+5 minuti
+
+10 minuti
+
+Quando il tempo scade:
+
+la partita termina automaticamente
+
+vince il giocatore con più punti
+
+Risultati finali
+
+Alla fine della partita viene mostrata una leaderboard con:
+
+posizione
+
+nome giocatore
+
+punti totali
+
+lettere corrette digitate
+
+✅ Questa struttura è perfetta per essere data a un sistema di generazione codice o a Google Antigravity perché:
+
+separa meccaniche
+
+logica di punteggio
+
+eventi
+
+modalità di gioco

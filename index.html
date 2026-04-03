@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Multiplayer Guess The Word (Wordle)</title>
+    <link rel="stylesheet" href="style.css?v=2">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f0f1e">
+    <link rel="apple-touch-icon" href="immagini/splash.png">
+    <script src="client_translations.js"></script>
+    <script src="translation_manager.js"></script>
+    <style>
+        /* PWA Install Button (optional styling) */
+        #pwa-install-btn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .lang-selector-header {
+            margin-top: 15px;
+            text-align: center;
+            position: relative;
+            z-index: 100;
+        }
+
+        .lang-dropdown {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .lang-dropdown:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .lang-dropdown option {
+            background-color: #1a1a2e;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <div class="loading-bar-container">
+                <div class="loading-bar"></div>
+            </div>
+            <p class="splash-loading-text" data-i18n="loading">Loading...</p>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app-container">
+
+        <!-- LOBBY -->
+        <div id="lobby-container">
+            <div class="lobby-header">
+                <h1 data-i18n="lobby_title">Wordle Multiplayer</h1>
+                <p class="subtitle" data-i18n="lobby_subtitle">Challenge your friends or play solo!</p>
+
+                <div class="lang-selector-header">
+                    <select id="languageSelect" class="lang-dropdown">
+                        <option value="it">🇮🇹 Italiano</option>
+                        <option value="en">🇬🇧 English</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="lobby-content">
+                <!-- Solo Section -->
+                <div class="game-mode-section solo-section">
+                    <h3 data-i18n="mode_solo_title">🎮 Solo Adventure</h3>
+                    <p class="mode-description" data-i18n="mode_solo_desc">Gioca da solo contro il computer</p>
+                    <button id="solo-mode-btn" class="primary-btn pulse-anim" data-i18n="btn_play_solo">
+                        <span class="btn-icon">👤</span> Play Solo
+                    </button>
+                </div>
+
+                <!-- Duello a Parole Section -->
+                <div class="game-mode-section duello-section">
+                    <h3 data-i18n="mode_duello_title">⚔️ Duello a Parole</h3>
+                    <p class="mode-description" data-i18n="mode_duello_desc">Sfida un amico con parole segrete!</p>
+
+                    <div class="duello-actions">
+                        <button id="create-duello-btn" class="secondary-btn" data-i18n="btn_create_duel">
+                            <span class="btn-icon">➕</span> Crea Duello
+                        </button>
+
+                        <div class="join-duello-container">
+                            <label for="duello-code-input" data-i18n="label_duel_code">Codice Duello</label>
+                            <div class="room-code-wrapper">
+                                <input type="text" id="duello-code-input" placeholder="XXXX" maxlength="4">
+                                <button id="join-duello-btn" class="secondary-btn join-btn"
+                                    data-i18n="btn_join">Unisciti</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- Parole XL Section (NEW MODE) -->
+                <div class="game-mode-section parole-xl-section">
+                    <h3 data-i18n="mode_xl_title">📏 Parole XL</h3>
+                    <p class="mode-description" data-i18n="mode_xl_desc">Gioca con parole da 5, 6, 7 o 8 lettere!
+                        Multiplayer con più lunghezze.</p>
+
+                    <div class="duello-actions">
+                        <button class="secondary-btn" onclick="window.location.href='modes/parole_xl/index.html'">
+                            <span class="btn-icon">🚀</span> <span data-i18n="btn_go_xl">Vai a Parole XL</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Impiccato Section -->
+                <div class="game-mode-section impiccato-section">
+                    <h3 data-i18n="mode_imp_title">🎯 Impiccato</h3>
+                    <p class="mode-description" data-i18n="mode_imp_desc">Indovina la parola lettera per lettera!
+                        Modalità multiplayer a turni.
+                    </p>
+
+                    <div class="duello-actions">
+                        <button class="secondary-btn" onclick="window.location.href='modes/impiccato/index.html'">
+                            <span class="btn-icon">➕</span> <span data-i18n="btn_go_imp">Vai a Impiccato</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Maratona Section -->
+                <div class="game-mode-section">
+                    <h3 data-i18n="mode_mar_title">🏃 Maratona</h3>
+                    <p class="mode-description" data-i18n="mode_mar_desc">Indovina la parola segreta prima che vengano
+                        rivelate tutte le lettere!
+                        Giocatori illimitati.</p>
+
+                    <div class="duello-actions">
+                        <button class="secondary-btn" onclick="window.location.href='modes/maratona/index.html'">
+                            <span class="btn-icon">🏃</span> <span data-i18n="btn_go_mar">Vai a Maratona</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- WordleChain Section -->
+                <div class="game-mode-section">
+                    <h3 data-i18n="mode_wc_title">⛓️ Word Chain</h3>
+                    <p class="mode-description" data-i18n="mode_wc_desc">Fast-paced word chain battle!
+                        Form words starting with the chain letters. Last player standing wins!</p>
+
+                    <div class="duello-actions">
+                        <button class="secondary-btn" onclick="window.location.href='modes/wordlechain/index.html'">
+                            <span class="btn-icon">⛓️</span> <span data-i18n="btn_go_wc">Go to Word Chain</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Caduta Lettere Section -->
+                <div class="game-mode-section">
+                    <h3>🔤 Lettere in Caduta</h3>
+                    <p class="mode-description">Digita le lettere che cadono dall'alto! Sfida amici in modalità punti o
+                        a tempo. ⚡</p>
+
+                    <div class="duello-actions">
+                        <button class="secondary-btn" onclick="window.location.href='modes/cadutalettere/index.html'">
+                            <span class="btn-icon">🔤</span> <span>Vai a Caduta Lettere</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- GAME CONTAINER -->
+        <div id="game-container" style="display: none;">
+            <div id="game-header">
+                <button id="back-to-lobby-btn" class="home-btn" data-i18n="btn_home">
+                    <span class="btn-icon">🏠</span> HOME
+                </button>
+                <div id="game-status">
+                    <h3 id="player-turn">Waiting for opponent...</h3>
+                    <p id="game-message"></p>
+                </div>
+                <div id="turn-timer">Time: 45s</div>
+            </div>
+
+            <div id="grid-wrapper">
+                <div id="grid-container"></div>
+            </div>
+
+            <div id="keyboard-container"></div>
+        </div>
+
+    </div>
+
+    <!-- Custom Modal Overlay -->
+    <div id="game-modal-overlay" class="game-modal-overlay">
+        <div class="game-modal">
+            <h3 id="modal-title" data-i18n="modal_confirm_title">Confirmation</h3>
+            <p id="modal-message" data-i18n="modal_confirm_msg">Are you sure?</p>
+            <div class="modal-buttons">
+                <button id="modal-confirm" class="modal-btn modal-btn-primary" data-i18n="btn_confirm">Confirm</button>
+                <button id="modal-cancel" class="modal-btn modal-btn-secondary" data-i18n="btn_cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA Install Overlay (Mobile) -->
+    <div id="pwa-install-overlay" class="game-modal-overlay" style="display: none; z-index: 9999;">
+        <div class="game-modal" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">📱</div>
+            <h3 style="margin-bottom: 10px;" data-i18n="pwa_install_title">Installa l'App</h3>
+            <p style="color: #ccc; margin-bottom: 20px; font-size: 0.95rem;" data-i18n="pwa_install_desc">
+                Gioca a Wordle in modo più veloce e senza distrazioni!
+            </p>
+            <div class="modal-buttons" style="flex-direction: column; gap: 10px;">
+                <button id="pwa-install-btn-action" class="modal-btn"
+                    style="width: 100%; background: linear-gradient(135deg, #00ff88, #00d4ff); color: #1a1a2e; border: none; font-weight: bold; font-size: 1.1rem; padding: 12px;">⬇️
+                    Download App</button>
+                <button id="pwa-install-close" class="modal-btn modal-btn-secondary" style="width: 100%;"
+                    data-i18n="btn_later">Più tardi</button>
+            </div>
+            <p id="pwa-ios-instructions" style="display: none; color: #aaa; font-size: 0.85rem; margin-top: 15px;">
+                Su iOS: premi l'icona Condividi <span style="font-size: 1.2rem;">⍗</span> e seleziona "Aggiungi alla
+                schermata Home".
+            </p>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+    <script src="solo.js"></script>
+    <script>
+
+        // Enhanced Service Worker Registration with Auto-Update
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('✅ ServiceWorker registered:', registration.scope);
+
+                        // Check for updates every 60 seconds
+                        setInterval(() => {
+                            registration.update();
+                        }, 60000);
+
+                        // Listen for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            console.log('🔄 New version detected, updating...');
+
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    // New version is ready - automatically reload after a short delay
+                                    console.log('✨ New version installed! Reloading in 2 seconds...');
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 2000);
+                                }
+                            });
+                        });
+                    })
+                    .catch((err) => {
+                        console.log('❌ ServiceWorker registration failed:', err);
+                    });
+
+                // Also handle controller change (when SW takes control)
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    console.log('🔄 ServiceWorker controller changed, reloading...');
+                    window.location.reload();
+                });
+            });
+        }
+
+        // --- PWA INSTALL PROMPT LOGIC ---
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+
+            // Show custom install UI only on mobile
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                const installOverlay = document.getElementById('pwa-install-overlay');
+                // Optional: Check if we haven't already dismissed it recently
+                if (!sessionStorage.getItem('pwa_prompt_dismissed')) {
+                    installOverlay.style.display = 'flex';
+                }
+            }
+        });
+
+        document.getElementById('pwa-install-btn-action').addEventListener('click', async () => {
+            // Hide the app provided install promotion
+            document.getElementById('pwa-install-overlay').style.display = 'none';
+
+            if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
+            }
+        });
+
+        document.getElementById('pwa-install-close').addEventListener('click', () => {
+            document.getElementById('pwa-install-overlay').style.display = 'none';
+            sessionStorage.setItem('pwa_prompt_dismissed', 'true');
+        });
+
+        // iOS fallback detection (iOS doesn't support beforeinstallprompt)
+        window.addEventListener('load', () => {
+            const isIos = () => {
+                const userAgent = window.navigator.userAgent.toLowerCase();
+                return /iphone|ipad|ipod/.test(userAgent);
+            }
+            // Detects if device is in standalone mode
+            const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+
+            if (isIos() && !isInStandaloneMode() && /Mobi/i.test(navigator.userAgent)) {
+                const hasSeenPrompt = localStorage.getItem('ios_install_prompted');
+                if (!hasSeenPrompt && !sessionStorage.getItem('pwa_prompt_dismissed')) {
+                    document.getElementById('pwa-install-overlay').style.display = 'flex';
+                    document.getElementById('pwa-install-btn-action').style.display = 'none'; // iOS has no JS trigger
+                    document.getElementById('pwa-ios-instructions').style.display = 'block';
+                    localStorage.setItem('ios_install_prompted', 'true');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>All Versus All - Wordle Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="all_vs_all_style.css">
+    <script src="client_translations.js"></script>
+    <script src="translation_manager.js"></script>
+</head>
+
+<body>
+
+    <div id="app-container">
+
+        <!-- LOBBY / SETUP -->
+        <div id="all-setup-container">
+            <div class="duello-header">
+                <h1 data-i18n="mode_ava_title">👥 All Versus All</h1>
+                <p class="subtitle" data-i18n="mode_ava_desc">Tutti contro tutti! Indovina la parola comune.</p>
+            </div>
+
+            <div class="duello-setup-content">
+                <div class="setup-card">
+                    <h3 data-i18n="ava_lobby_title">Sala d'attesa</h3>
+
+                    <div class="input-group">
+                        <label for="nickname-input" data-i18n="ava_label_nick">Il tuo Nickname</label>
+                        <input type="text" id="nickname-input" data-i18n="ava_placeholder_nick" placeholder="Nickname"
+                            maxlength="12">
+                    </div>
+
+                    <div class="input-group" id="game-lang-group" style="display:none; margin-top: 10px;">
+                        <label for="game-lang-select" data-i18n="label_word_language">Lingua Parola Segreta</label>
+                        <select id="game-lang-select" class="lang-dropdown"
+                            style="width: 100%; border-radius: 5px; background: rgba(255,255,255,0.05);">
+                            <option value="it">🇮🇹 Italiano</option>
+                            <option value="en">🇬🇧 English</option>
+                        </select>
+                    </div>
+
+                    <div id="setup-actions">
+                        <!-- Buttons inserted via JS -->
+                    </div>
+
+                    <div id="host-controls" style="display:none; margin-top: 20px;">
+                        <p class="mode-description" data-i18n="ava_msg_host_wait">Sei l'host. Attendi gli altri
+                            giocatori.</p>
+                        <button id="start-game-btn" class="primary-btn pulse-anim" data-i18n="ava_btn_start">
+                            <span class="btn-icon">▶️</span> Avvia Partita
+                        </button>
+                    </div>
+
+                    <div id="waiting-message" style="display:none; margin-top: 20px;">
+                        <p data-i18n="ava_msg_client_wait">In attesa che l'host avvii la partita...</p>
+                        <div class="loading-bar-container" style="width: 100px; margin-top: 10px;">
+                            <div class="loading-bar"></div>
+                        </div>
+                    </div>
+
+                    <div class="players-list-lobby">
+                        <h4 data-i18n="ava_list_players">Giocatori connessi:</h4>
+                        <ul id="lobby-player-list">
+                            <!-- Populated via JS -->
+                        </ul>
+                    </div>
+
+                    <p id="room-code-display"
+                        style="margin-top: 15px; font-weight: bold; font-size: 1.2rem; color: var(--secondary-color);">
+                    </p>
+                </div>
+            </div>
+
+            <button id="back-to-main-btn" class="home-btn" onclick="location.href='index.html'">
+                <span class="btn-icon">🏠</span> HOME
+            </button>
+        </div>
+
+        <!-- GAME INTERFACE (Redesigned) -->
+        <div id="all-game-container" style="display: none;">
+
+            <div class="main-layout-split">
+
+                <!-- LEFT: Sidebar (Boxed) -->
+                <div class="sidebar-box">
+                    <ul id="live-player-list">
+                        <!-- JS Populated: e.g. "franco  OOOOO" -->
+                    </ul>
+                </div>
+
+                <!-- RIGHT: Game Content -->
+                <div class="game-content-area">
+
+                    <!-- Top Header Card -->
+                    <div class="game-header-card">
+                        <button id="leave-game-btn" class="home-btn"
+                            onclick="if(confirm('Vuoi tornare al menu principale?')) location.href='index.html'">
+                            <span class="btn-icon">🏠</span> HOME
+                        </button>
+                        <div class="header-center">
+                            <h3 id="mode-title-game" data-i18n="mode_ava_title">All Versus All</h3>
+                            <p class="subtitle-game" data-i18n="ava_mode_single_desc">Modalità singola: inserisci una
+                                parola.</p>
+                        </div>
+                        <div class="timer-badge" id="game-timer-display">Time: 45s</div>
+                    </div>
+
+                    <!-- Grid -->
+                    <div id="grid-wrapper">
+                        <div id="grid-container"></div>
+                    </div>
+
+                    <!-- Keyboard -->
+                    <div id="keyboard-container"></div>
+
+                </div>
+
+                <!-- Emoji Reaction Panel -->
+                <div id="emoji-panel">
+                    <button class="emoji-button" data-emoji="😂" title="Risata">😂</button>
+                    <button class="emoji-button" data-emoji="🔥" title="Fuoco">🔥</button>
+                    <button class="emoji-button" data-emoji="😱" title="Shock">😱</button>
+                    <button class="emoji-button" data-emoji="🎉" title="Festa">🎉</button>
+                    <button class="emoji-button" data-emoji="😎" title="Figo">😎</button>
+                    <button class="emoji-button" data-emoji="💪" title="Forza">💪</button>
+                    <button class="emoji-button" data-emoji="🤔" title="Pensiero">🤔</button>
+                    <button class="emoji-button" data-emoji="❤️" title="Amore">❤️</button>
+                </div>
+
+                <!-- Emoji Reactions Display -->
+                <div id="emoji-reactions-display"></div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- WIN OVERLAY -->
+    <div id="win-overlay" class="game-modal-overlay">
+        <div class="game-modal">
+            <h1 id="winner-name">NOME ha vinto!</h1>
+            <p><span data-i18n="msg_secret_word_prefix">La parola era:</span> <span id="secret-word-display"
+                    style="color: var(--primary-color); font-weight: bold;">PAROLA</span></p>
+
+            <div id="host-actions" style="display:none; margin-top: 20px;">
+                <button id="new-round-btn" class="primary-btn" data-i18n="ava_btn_new_round">Nuova Partita</button>
+            </div>
+            <div id="client-waiting" style="display:none; margin-top: 20px;">
+                <p data-i18n="ava_msg_host_deciding">L'host sta decidendo...</p>
+            </div>
+            <button id="back-to-menu-overlay" class="secondary-btn" style="margin-top: 10px;"
+                data-i18n="back_lobby">Torna al Menu</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="all_vs_all.js"></script>
+</body>
+
+</html>

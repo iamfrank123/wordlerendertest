@@ -1,0 +1,333 @@
+/* --- SCREENSHOT MATCH LAYOUT (ALL VS ALL) --- */
+
+.main-layout-split {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100vh;
+    padding: 40px;
+    gap: 60px;
+    /* Space between sidebar and game */
+    justify-content: center;
+    align-items: center;
+    /* Center Vertically */
+}
+
+/* 1. LEFT SIDEBAR (The black box) */
+.sidebar-box {
+    width: 320px;
+    height: 500px;
+    /* Fixed height match image typically */
+    border: 3px solid #000;
+    /* Distinct Black Border as in image */
+    background-color: transparent;
+    /* Or very dark matches bg */
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+/* List Items */
+.player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-family: 'Courier New', monospace;
+    /* Monospaced look */
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #e0e0e0;
+    border-bottom: none;
+    /* Clean list */
+}
+
+.player-name {
+    text-transform: lowercase;
+    /* "franco", "carlo" */
+}
+
+.progress-dots {
+    display: flex;
+    gap: 4px;
+}
+
+/* The Green/Empty circles */
+.dot {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #4ade80;
+    /* Bright Green Border */
+    border-radius: 50%;
+    background-color: transparent;
+}
+
+.dot.filled {
+    background-color: #4ade80;
+    /* Filled Green */
+}
+
+
+/* 2. RIGHT GAME CONTENT */
+.game-content-area {
+    flex: 1;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    /* Spacing between header, grid, keyboard */
+}
+
+/* Header Card (Rounded dark pill) */
+.game-header-card {
+    width: 100%;
+    background-color: #1a1a2e;
+    /* Dark Purple/Blue bg */
+    border-radius: 20px;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.home-btn-small {
+    background-color: #ef4444;
+    /* Red/Orange Home Btn */
+    color: white;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.header-center {
+    text-align: center;
+    color: white;
+}
+
+#mode-title-game {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.subtitle-game {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin: 0;
+}
+
+.timer-badge {
+    background: #000;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 12px;
+    font-family: monospace;
+    font-size: 1rem;
+}
+
+/* GRID */
+#grid-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    /* 65px (box) + 8px (gap) * 6.5 rows approx 480px. */
+    max-height: 300px;
+    overflow-y: auto;
+    /* Custom Scrollbar Styling */
+    scrollbar-width: thin;
+    scrollbar-color: #2563eb transparent;
+    margin-bottom: 20px;
+    /* Space before keyboard */
+    padding-right: 10px;
+    /* Avoid scrollbar covering content */
+}
+
+/* Webkit Scrollbar */
+#grid-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+#grid-wrapper::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+#grid-wrapper::-webkit-scrollbar-thumb {
+    background-color: #2563eb;
+    border-radius: 4px;
+}
+
+#grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 10px;
+    /* Space at bottom for scroll */
+}
+
+.box {
+    width: 65px;
+    height: 65px;
+    border: 2px solid #444;
+    border-radius: 4px;
+    background: transparent;
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* KEYBOARD (Standard Gray) */
+#keyboard-container {
+    background: transparent;
+    width: auto;
+    padding: 0;
+    border: none;
+    gap: 6px;
+    margin-top: 15px;
+}
+
+.key {
+    background-color: #818384;
+    /* Standard Gray Key */
+    border-radius: 4px;
+    height: 58px;
+    min-width: 45px;
+    font-size: 1rem;
+    text-transform: uppercase;
+    color: white;
+    font-weight: 700;
+    margin: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.key:hover {
+    background-color: #666;
+}
+
+/* Responsive */
+@media screen and (max-width: 900px) {
+    .main-layout-split {
+        flex-direction: column;
+        padding: 10px;
+        gap: 20px;
+        height: auto;
+    }
+
+    .sidebar-box {
+        width: 100%;
+        height: 150px;
+        /* Short list on mobile */
+        border: 1px solid #444;
+        display: none;
+        /* Hide sidebar on mobile to save space */
+    }
+
+    .game-content-area {
+        width: 100%;
+        gap: 10px;
+    }
+
+    .game-header-card {
+        padding: 10px;
+    }
+
+    .box {
+        width: 50px;
+        height: 50px;
+        font-size: 1.8rem;
+    }
+
+    .key {
+        height: 50px;
+        min-width: 30px;
+    }
+}
+
+/* Mobile Fixes for Keyboard */
+@media screen and (max-width: 600px) {
+    .main-layout-split {
+        padding: 5px;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .game-content-area {
+        height: 100%;
+        justify-content: space-between;
+        padding-bottom: env(safe-area-inset-bottom, 10px);
+    }
+
+    #grid-wrapper {
+        flex: 1;
+        max-height: none;
+        margin-bottom: 5px;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    .box {
+        width: 42px;
+        height: 42px;
+        font-size: 1.6rem;
+    }
+
+    #keyboard-container {
+        width: 100%;
+        max-width: 100%;
+        padding: 5px;
+        gap: 4px;
+        /* Force stick to bottom if needed, or rely on flex */
+    }
+
+    .key {
+        height: 40px;
+        min-width: unset;
+        flex: 1;
+        margin: 1px;
+        font-size: 0.9rem;
+    }
+}
+
+@media screen and (max-width: 380px) {
+    .box {
+        width: 36px;
+        height: 36px;
+        font-size: 1.4rem;
+    }
+
+    .key {
+        height: 35px;
+        font-size: 0.8rem;
+    }
+}
+
+/* COLOR OVERRIDES */
+.box.correct-position {
+    background-color: #6aaa64 !important;
+    border-color: #6aaa64 !important;
+}
+
+.box.wrong-position {
+    background-color: #c9b458 !important;
+    border-color: #c9b458 !important;
+}
+
+.box.not-in-word {
+    background-color: #3a3a3c !important;
+    border-color: #3a3a3c !important;
+}

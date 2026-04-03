@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Duello a Parole - Wordle Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="client_translations.js"></script>
+    <script src="translation_manager.js"></script>
+</head>
+
+<body>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app-container">
+
+        <!-- SETUP SECTION -->
+        <div id="duello-setup-container">
+            <div class="duello-header">
+                <h1 data-i18n="mode_duello_title">⚔️ Duello a Parole</h1>
+                <p class="subtitle" data-i18n="mode_duello_desc">Sfida il tuo avversario!</p>
+            </div>
+
+            <div class="duello-setup-content">
+                <div class="setup-card">
+                    <h3 data-i18n="duel_setup_title">Imposta la tua parola segreta</h3>
+
+                    <div class="input-group">
+                        <label for="secret-word-input" data-i18n="duel_label_secret">Parola Segreta (5 lettere)</label>
+                        <input type="text" id="secret-word-input" placeholder="PAROLA" maxlength="5" autocomplete="off">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="hint-input" data-i18n="duel_label_hint">Indizio (opzionale)</label>
+                        <textarea id="hint-input" data-i18n="duel_placeholder_hint"
+                            placeholder="Scrivi un indizio per il tuo avversario..." rows="3"
+                            maxlength="100"></textarea>
+                    </div>
+
+                    <div class="input-group"
+                        style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+                        <input type="checkbox" id="hints-enabled-checkbox" checked
+                            style="width: 20px; height: 20px; accent-color: var(--primary-color);">
+                        <label for="hints-enabled-checkbox"
+                            style="margin: 0; display: inline-block; cursor: pointer; color: #e0e0ff;"
+                            data-i18n="duel_check_hints">Indizio (Colori
+                            Caselle)</label>
+                    </div>
+
+
+                    <button id="ready-btn" class="primary-btn" data-i18n="duel_btn_ready">
+                        <span class="btn-icon">✓</span> Sono Pronto
+                    </button>
+
+                    <p id="setup-message"></p>
+                </div>
+            </div>
+
+            <button id="back-to-lobby-setup-btn" class="home-btn" onclick="location.href='index.html'">
+                <span class="btn-icon">🏠</span> HOME
+            </button>
+        </div>
+
+        <!-- GAME SECTION -->
+        <div id="duello-game-container" style="display: none;">
+            <div id="duello-game-header">
+                <button id="back-to-lobby-game-btn" class="home-btn"
+                    onclick="if(confirm('Vuoi tornare al menu principale?')) location.href='index.html'">
+                    <span class="btn-icon">🏠</span> HOME
+                </button>
+                <div id="duello-game-status">
+                    <h3 data-i18n="duel_status_ongoing">⚔️ Duello in Corso</h3>
+                    <p id="duello-game-message"></p>
+                </div>
+            </div>
+
+            <!-- Mobile Grid Toggle Button -->
+            <button id="toggle-grid-btn" class="secondary-btn" style="display: none; margin-bottom: 15px;"
+                data-i18n="duel_btn_toggle_grid">
+                👁️ Vedi Griglia Avversario
+            </button>
+
+            <div id="hint-display-container">
+                <div class="hint-box">
+                    <strong>Indizio avversario:</strong>
+                    <p id="opponent-hint">Nessun indizio</p>
+                </div>
+            </div>
+
+            <div id="duello-grids-wrapper">
+                <div class="grid-section">
+                    <h4 data-i18n="duel_grid_own">La Tua Griglia</h4>
+                    <div id="own-grid-container" class="duello-grid own-grid"></div>
+                </div>
+                <div class="grid-divider"></div>
+                <div class="grid-section">
+                    <h4 data-i18n="duel_grid_opponent">Griglia Avversario</h4>
+                    <div id="opponent-grid-container" class="duello-grid opponent-grid"></div>
+                </div>
+            </div>
+
+            <div id="duello-keyboard-container"></div>
+        </div>
+
+    </div>
+
+    <!-- Custom Modal Overlay -->
+    <div id="game-modal-overlay" class="game-modal-overlay">
+        <div class="game-modal">
+            <h3 id="modal-title" data-i18n="modal_confirm_title">Confirmation</h3>
+            <p id="modal-message" data-i18n="modal_confirm_msg">Are you sure?</p>
+            <div class="modal-buttons">
+                <button id="modal-confirm" class="modal-btn modal-btn-primary" data-i18n="btn_confirm">Confirm</button>
+                <button id="modal-cancel" class="modal-btn modal-btn-secondary" data-i18n="btn_cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="duello.js"></script>
+
+</body>
+
+</html>
